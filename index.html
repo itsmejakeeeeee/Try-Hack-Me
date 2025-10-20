@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Try to Hack Me: Cloud Administrator Edition</title>
+
+<!-- Favicon -->
+<link rel="icon" type="image/png" href="image/logo.png">
+
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(to bottom right, #cde9ff, #f3faff);
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  h1 {
+    font-size: 2em;
+    color: #1b6ca8;
+    margin-bottom: 10px;
+  }
+
+  p {
+    font-size: 1em;
+    color: #333;
+  }
+
+  button {
+    background-color: #1b6ca8;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: 0.3s;
+    margin-top: 15px;
+  }
+
+  button:hover {
+    background-color: #164f7a;
+  }
+
+  .hidden { display: none; }
+
+  .question {
+    font-size: 1.2em;
+    margin: 20px 0;
+    font-weight: 600;
+  }
+
+  .option-btn {
+    display: block;
+    width: 90%;
+    max-width: 500px;
+    background-color: #e6f4ff;
+    border: 2px solid #1b6ca8;
+    border-radius: 12px;
+    padding: 12px;
+    margin: 10px auto;
+    font-size: 1em;
+    cursor: pointer;
+    transition: 0.3s;
+    color: black;
+    font-weight: 500;
+  }
+
+  .option-btn:hover {
+    background-color: #bde0ff;
+  }
+
+  .feedback {
+    margin: 15px 0;
+    font-weight: bold;
+  }
+
+  .explanation {
+    font-size: 0.95em;
+    color: #444;
+    margin-top: 8px;
+    font-style: italic;
+  }
+
+  .next-btn, .quit-btn, .show-btn {
+    background-color: #1b6ca8;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 1em;
+    display: none;
+    margin: 10px 5px;
+  }
+
+  .quit-btn { background-color: #c0392b; }
+  .quit-btn:hover { background-color: #96281b; }
+
+  .progress {
+    margin-top: 20px;
+    font-size: 0.95em;
+    color: #555;
+  }
+
+  .correct-answer {
+    font-size: 0.95em;
+    color: #1b6ca8;
+    margin-top: 5px;
+  }
+
+  #landingPage, #gameContainer {
+    width: 100%;
+    max-width: 700px;
+  }
+
+  /* ✅ Modal Styles */
+  #answerModal {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.6);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+  }
+
+  #modalContent {
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    width: 90%;
+    max-width: 1000px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  #modalContent h2 {
+    text-align: center;
+    color: #1b6ca8;
+  }
+
+  .answer-card {
+    background: #f9fcff;
+    border: 2px solid #1b6ca8;
+    border-radius: 12px;
+    padding: 12px;
+    margin: 12px 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+
+  .user-answer { color: #c0392b; }
+  .correct { color: #27ae60; }
+
+  #closeModalBtn {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    background: none;
+    border: none;
+    font-size: 1.5em;
+    color: #c0392b;
+    cursor: pointer;
+  }
+
+  #closeModalBtn:hover {
+    color: #96281b;
+  }
+</style>
+</head>
+<body>
+
+<!-- Landing Page -->
+<div id="landingPage">
+    <img src="image/logo.png" alt="Try to Hack Me Logo" style="max-width:250px; margin-bottom:15px;">
+  <h1>☁️ Try to Hack Me: Cloud Administrator Edition</h1>
+  <p>Welcome, Cloud Defender! Your mission is to protect your company’s cloud system from hackers.<br>
+  Solve 10 real-life admin security challenges using your cloud knowledge.<br>
+  Are you ready to prove your skills?</p>
+  <button id="startBtn">🚀 Start Game</button>
+</div>
+
+<!-- Game Container -->
+<div class="hidden" id="gameContainer">
+  <h1>☁️ Try to Hack Me: Cloud Administrator Edition</h1>
+  <div id="question-container">
+    <p class="question" id="question"></p>
+    <div id="options"></div>
+    <p class="feedback" id="feedback"></p>
+    <p class="correct-answer" id="correctAnswer"></p>
+    <p class="explanation" id="explanation"></p>
+    <button class="next-btn" id="nextBtn">Next Task ➜</button>
+    <p class="progress" id="progress"></p>
+    <div>
+      <button class="show-btn" id="showAnswersBtn">📘 Show My Answers</button>
+      <button class="quit-btn" id="quitBtn">🚪 Quit Game</button>
+    </div>
+  </div>
+</div>
+
+<!-- ✅ Modal Popup for Answer Summary -->
+<div id="answerModal">
+  <div id="modalContent">
+    <button id="closeModalBtn">❌</button>
+    <h2>📘 Your Answer Summary</h2>
+    <div id="answersList"></div>
+  </div>
+</div>
+
+<!-- 🎵 Sound Effects -->
+<audio id="clickSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_8be9c481c4.mp3?filename=click-124467.mp3"></audio>
+<audio id="hoverSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_bf76f4c8ab.mp3?filename=pop-1-195456.mp3"></audio>
+<audio id="correctSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_bf0176a259.mp3?filename=success-1-6297.mp3"></audio>
+<audio id="wrongSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_29ccf1d606.mp3?filename=wrong-buzzer-6268.mp3"></audio>
+<audio id="winSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_1a4145b254.mp3?filename=level-up-191997.mp3"></audio>
+
+<script>
+const questions = [
+  { question: "1. You see a strange login from another country. What should you do?",
+    options: ["Ignore", "Change password", "Tell friend", "Post online", "Do nothing"],
+    correct: 1,
+    explanation: "Always act fast — change your password and check access logs to prevent unauthorized access." },
+  { question: "2. Your teammate uses 'admin123' as password. What will you do?",
+    options: ["Force strong password", "Let it be", "Share it", "Use same password", "Tell HR"],
+    correct: 0,
+    explanation: "Weak passwords are easy to hack. Enforce strong password policies for better security." },
+  { question: "3. A file with company data is public. What should you do?",
+    options: ["Make private", "Ignore", "Share more files", "Backup publicly", "Move to trash"],
+    correct: 0,
+    explanation: "Sensitive data should always be private. Adjust sharing permissions immediately." },
+  { question: "4. Your firewall is open to all IPs. What rule should you apply?",
+    options: ["Allow trusted IPs", "Disable it", "Open all ports", "Add random IPs", "Allow guests"],
+    correct: 0,
+    explanation: "Restrict firewall access to known IPs to prevent external attacks." },
+  { question: "5. A user who left still has access. What is right?",
+    options: ["Keep access", "Remove account", "Ignore", "Give admin role", "Change password only"],
+    correct: 1,
+    explanation: "Former employees should have their accounts revoked to prevent insider threats." },
+  { question: "6. Backup failed last night. What should you do first?",
+    options: ["Run again", "Ignore", "Restart PC", "Delete data", "Wait next schedule"],
+    correct: 0,
+    explanation: "Backups are essential. Run it again and verify integrity immediately." },
+  { question: "7. Billing suddenly increased. What might be happening?",
+    options: ["Possible hacking", "Normal usage", "Update issue", "HR problem", "Bug only"],
+    correct: 0,
+    explanation: "Unexpected billing spikes often mean compromised resources or misconfigured instances." },
+  { question: "8. You get email asking for admin credentials. What do you do?",
+    options: ["Report phishing", "Click link", "Reply", "Enter fake password", "Ignore"],
+    correct: 0,
+    explanation: "Phishing attacks mimic legit messages — report and never click suspicious links." },
+  { question: "9. Cloud provider released update. What should you do?",
+    options: ["Install soon", "Ignore", "Uninstall", "Wait forever", "Shutdown"],
+    correct: 0,
+    explanation: "Updates fix vulnerabilities. Apply them as soon as possible." },
+  { question: "10. Team wants to disable MFA because it's slow. What do you say?",
+    options: ["Keep MFA", "Agree", "Turn off all security", "Use weak password", "Disable logins"],
+    correct: 0,
+    explanation: "" }
+];
+
+let currentQuestion = 0;
+let score = 0;
+let userAnswers = [];
+
+const landingPage = document.getElementById("landingPage");
+const gameContainer = document.getElementById("gameContainer");
+const startBtn = document.getElementById("startBtn");
+const questionElement = document.getElementById("question");
+const optionsContainer = document.getElementById("options");
+const feedbackElement = document.getElementById("feedback");
+const correctAnswerElement = document.getElementById("correctAnswer");
+const explanationElement = document.getElementById("explanation");
+const nextBtn = document.getElementById("nextBtn");
+const progressElement = document.getElementById("progress");
+const quitBtn = document.getElementById("quitBtn");
+const showAnswersBtn = document.getElementById("showAnswersBtn");
+const answerModal = document.getElementById("answerModal");
+const answersList = document.getElementById("answersList");
+const closeModalBtn = document.getElementById("closeModalBtn");
+
+// Sounds
+const clickSound = document.getElementById("clickSound");
+const hoverSound = document.getElementById("hoverSound");
+const correctSound = document.getElementById("correctSound");
+const wrongSound = document.getElementById("wrongSound");
+const winSound = document.getElementById("winSound");
+
+function playSound(sound) {
+  sound.currentTime = 0;
+  sound.play();
+}
+
+startBtn.addEventListener("click", () => {
+  playSound(clickSound);
+  landingPage.classList.add("hidden");
+  gameContainer.classList.remove("hidden");
+  showQuestion();
+});
+
+function showQuestion() {
+  const q = questions[currentQuestion];
+  questionElement.textContent = q.question;
+  optionsContainer.innerHTML = "";
+  feedbackElement.textContent = "";
+  correctAnswerElement.textContent = "";
+  explanationElement.textContent = "";
+  nextBtn.style.display = "none";
+  progressElement.textContent = `Task ${currentQuestion + 1} of ${questions.length}`;
+  quitBtn.style.display = "none";
+  showAnswersBtn.style.display = "none";
+
+  q.options.forEach((option, index) => {
+    const btn = document.createElement("button");
+    btn.textContent = option;
+    btn.classList.add("option-btn");
+    btn.addEventListener("mouseover", () => playSound(hoverSound));
+    btn.addEventListener("click", () => {
+      playSound(clickSound);
+      checkAnswer(index);
+    });
+    optionsContainer.appendChild(btn);
+  });
+}
+
+function checkAnswer(selectedIndex) {
+  const q = questions[currentQuestion];
+  const correctIndex = q.correct;
+  const correctText = q.options[correctIndex];
+  const userChoice = q.options[selectedIndex];
+
+  userAnswers.push({
+    question: q.question,
+    chosen: userChoice,
+    correct: correctText,
+    explanation: q.explanation,
+    isCorrect: selectedIndex === correctIndex
+  });
+
+  if (selectedIndex === correctIndex) {
+    feedbackElement.textContent = "✅ Correct! You handled it well.";
+    feedbackElement.style.color = "green";
+    score++;
+    playSound(correctSound);
+  } else {
+    feedbackElement.textContent = "❌ Wrong choice. Think like a cloud admin!";
+    feedbackElement.style.color = "red";
+    if (currentQuestion !== questions.length - 1) {
+      correctAnswerElement.textContent = `✔️ Correct: ${correctText}`;
+    } else {
+      correctAnswerElement.textContent = "";
+    }
+    playSound(wrongSound);
+  }
+
+  explanationElement.textContent = q.explanation;
+  document.querySelectorAll(".option-btn").forEach(btn => btn.disabled = true);
+  nextBtn.style.display = "inline-block";
+}
+
+nextBtn.addEventListener("click", () => {
+  playSound(clickSound);
+  currentQuestion++;
+  if (currentQuestion < questions.length) showQuestion();
+  else showResults();
+});
+
+function showResults() {
+  playSound(winSound);
+  questionElement.textContent = `🎉 Great job, Cloud Admin!`;
+  optionsContainer.innerHTML = "";
+  feedbackElement.innerHTML = `You got <strong>${score}</strong> / <strong>${questions.length}</strong> correct.`;
+  feedbackElement.style.color = "#1b6ca8";
+
+  let rank = "";
+  if (score <= 4) rank = "🧑‍💻 Beginner Defender";
+  else if (score <= 7) rank = "☁️ Skilled Protector";
+  else rank = "🔒 Expert Guardian";
+
+  progressElement.innerHTML = `Your Rank: <strong>${rank}</strong><br>Game Over – Thanks for playing!`;
+  nextBtn.style.display = "none";
+  quitBtn.style.display = "inline-block";
+  showAnswersBtn.style.display = "inline-block";
+}
+
+showAnswersBtn.addEventListener("click", () => {
+  playSound(clickSound);
+  answerModal.style.display = "flex";
+  answersList.innerHTML = userAnswers.map((a, i) => `
+    <div class="answer-card">
+      <p><strong>Q${i+1}:</strong> ${a.question}</p>
+      <p>🧑‍💻 Your Answer: <span class="user-answer">${a.chosen}</span></p>
+      <p>✔️ Correct Answer: <span class="correct">${a.correct}</span></p>
+      <p><em>${a.explanation}</em></p>
+    </div>
+  `).join("");
+});
+
+closeModalBtn.addEventListener("click", () => {
+  playSound(clickSound);
+  answerModal.style.display = "none";
+});
+
+quitBtn.addEventListener("click", () => {
+  playSound(clickSound);
+  alert("Thank you for playing! Goodbye, Cloud Defender ☁️");
+  location.reload();
+});
+</script>
+</body>
+</html>
